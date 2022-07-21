@@ -1,31 +1,51 @@
 package go_rabbitmq
 
 import (
+	"fmt"
 	"github.com/streadway/amqp"
 	"log"
 	"strings"
 )
 
+//mq 对象
+var mq *MQ
+
 type MQ struct {
+	Conn          *amqp.Connection
 	Channel       *amqp.Channel
 	notifyConfirm chan amqp.Confirmation
 	notifyReturn  chan amqp.Return
 }
 
-// 获得连接通道
-func (this *MQconn) Channel() *MQ {
-	c, err := this.conn.Channel()
+//连接返回 MQ对象，已经初始化连接，和 amqp.Channel
+func Conn(user, password, host, vhost string, port int) *MQ {
+	dsn := fmt.Sprintf("amqp://%s:%s@%s:%d%s", user, password, host, port, vhost)
+	conn, err := amqp.Dial(dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	mq = &MQ{
+		Conn: conn,
+	}
+	channel, err := mq.Conn.Channel()
 	if err != nil {
 		panic(err)
 	}
-	return &MQ{
-		Channel: c,
-	}
+	mq.Channel = channel
+	return mq
 }
 
 //关闭通道
 func (this *MQ) CloseChannel() error {
 	return this.Channel.Close()
+}
+
+func (this *MQ) Close() error {
+	err := this.Channel.Close()
+	if err != nil {
+		return err
+	}
+	return this.Conn.Close()
 }
 
 //开启消息确认

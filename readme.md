@@ -16,12 +16,15 @@ go get github.com/cr-mao/go-rabbitmq@v1.0.0
 ```test
 # 生产者测试
 go test -v test/pub_test.go
-
+# 消费者测试
+go test -v test/sub/sub_test.go
 ```
 
 
 #### 其他说明
-conn.go 操作连接
+```text
 lib.go 所有的操作都封装在里头在里头做扩展你想的要的功能即可
 pub.go 生产函数
 sub.go 消费函数
+```
+

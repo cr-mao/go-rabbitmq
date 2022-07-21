@@ -13,9 +13,7 @@ const (
 )
 
 func TestProductDirect(t *testing.T) {
-	mqConn := gorabbitmq.Conn("guest", "guest", "127.0.0.1", "/", 5672)
-	mq := mqConn.Channel()
-	defer mq.CloseChannel()
+	mq := gorabbitmq.Conn("guest", "guest", "127.0.0.1", "/", 5672)
 	err := mq.ExchangeDeclare(EXCHANGE_NAME, "direct")
 	if err != nil {
 		t.Fatalf("exchange声明失败 %+v", err)
@@ -30,12 +28,12 @@ func TestProductDirect(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 	}
+
+	mq.Close()
 }
 
 func TestProductDirectWithConfirm(t *testing.T) {
-	mqConn := gorabbitmq.Conn("guest", "guest", "127.0.0.1", "/", 5672)
-	mq := mqConn.Channel()
-	defer mq.CloseChannel()
+	mq := gorabbitmq.Conn("guest", "guest", "127.0.0.1", "/", 5672)
 	err := mq.ExchangeDeclare(EXCHANGE_NAME, "direct")
 	if err != nil {
 		t.Fatalf("exchange声明失败 %+v", err)
@@ -49,4 +47,5 @@ func TestProductDirectWithConfirm(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 	}
+	mq.Close()
 }

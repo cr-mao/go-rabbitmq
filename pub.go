@@ -6,8 +6,9 @@ import "github.com/streadway/amqp"
 func (this *MQ) SendMessage(routing_key string, exchange string, message string) error {
 	return this.Channel.Publish(exchange, routing_key, true, false,
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(message),
+			ContentType:  "text/plain",
+			Body:         []byte(message),
+			DeliveryMode: 2,
 		},
 	)
 }

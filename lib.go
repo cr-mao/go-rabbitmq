@@ -87,7 +87,7 @@ func (this *MQ) listenReturn() {
 func (this *MQ) DecQueueAndBind(queues string, bingding_key string, exchange string) error {
 	qList := strings.Split(queues, ",")
 	for _, queue := range qList {
-		q, err := this.Channel.QueueDeclare(queue, false, false, false, false, nil)
+		q, err := this.Channel.QueueDeclare(queue, true, false, false, false, nil)
 		if err != nil {
 			return err
 		}
@@ -101,6 +101,6 @@ func (this *MQ) DecQueueAndBind(queues string, bingding_key string, exchange str
 
 //声明exhchange
 func (this *MQ) ExchangeDeclare(exchange_name, kind string) error {
-	err := this.Channel.ExchangeDeclare(exchange_name, kind, false, false, false, false, nil)
+	err := this.Channel.ExchangeDeclare(exchange_name, kind, true, false, false, false, nil)
 	return err
 }

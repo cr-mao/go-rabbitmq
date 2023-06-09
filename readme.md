@@ -10,7 +10,7 @@
 ### 安装
 
 ```shell
-go get github.com/cr-mao/go-rabbitmq@v2.0.0
+go get github.com/cr-mao/go-rabbitmq@v1.1.0
 ```
 
 

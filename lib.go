@@ -7,6 +7,12 @@ import (
 	"strings"
 )
 
+const (
+	EXCHANGE_TYPE_FANOUT = "fanout" //  Fanout：广播，将消息交给所有绑定到交换机的队列
+	EXCHANGE_TYPE_DIRECT = "direct" //Direct：定向，把消息交给符合指定routing key 的队列
+	EXCHANGE_TYPE_TOPIC  = "topic"  //Topic：通配符，把消息交给符合routing pattern（路由模式） 的队列
+)
+
 //mq 对象
 var mq *MQ
 
@@ -17,22 +23,30 @@ type MQ struct {
 	notifyReturn  chan amqp.Return
 }
 
+type ConnParams struct {
+	User     string
+	Password string
+	Host     string
+	Port     int
+	Vhost    string
+}
+
 //连接返回 MQ对象，已经初始化连接，和 amqp.Channel
-func Conn(user, password, host, vhost string, port int) *MQ {
-	dsn := fmt.Sprintf("amqp://%s:%s@%s:%d%s", user, password, host, port, vhost)
+func Conn(conParams *ConnParams) (*MQ, error) {
+	dsn := fmt.Sprintf("amqp://%s:%s@%s:%d%s", conParams.User, conParams.Password, conParams.Host, conParams.Port, conParams.Vhost)
 	conn, err := amqp.Dial(dsn)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	mq = &MQ{
 		Conn: conn,
 	}
 	channel, err := mq.Conn.Channel()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	mq.Channel = channel
-	return mq
+	return mq, nil
 }
 
 //关闭通道
@@ -48,7 +62,7 @@ func (this *MQ) Close() error {
 	return this.Conn.Close()
 }
 
-//开启消息确认
+// 开启消息确认
 func (this *MQ) SetConfirm() {
 	err := this.Channel.Confirm(false)
 	if err != nil {
@@ -57,7 +71,7 @@ func (this *MQ) SetConfirm() {
 	this.notifyConfirm = this.Channel.NotifyPublish(make(chan amqp.Confirmation))
 }
 
-//消息确认
+// 消息确认
 func (this *MQ) ListenConfirm() bool {
 	defer this.Channel.Close()
 	ret := <-this.notifyConfirm
@@ -83,15 +97,15 @@ func (this *MQ) listenReturn() {
 	//}
 }
 
-//申明队列以及绑定路由key,多个队列 可以用逗号分隔
-func (this *MQ) DecQueueAndBind(queues string, bingding_key string, exchange string) error {
+// 申明队列以及绑定路由key,多个队列 可以用逗号分隔
+func (this *MQ) DecQueueAndBind(queues string, bingdingKey string, exchange string) error {
 	qList := strings.Split(queues, ",")
 	for _, queue := range qList {
 		q, err := this.Channel.QueueDeclare(queue, true, false, false, false, nil)
 		if err != nil {
 			return err
 		}
-		err = this.Channel.QueueBind(q.Name, bingding_key, exchange, false, nil)
+		err = this.Channel.QueueBind(q.Name, bingdingKey, exchange, false, nil)
 		if err != nil {
 			return err
 		}
@@ -99,8 +113,8 @@ func (this *MQ) DecQueueAndBind(queues string, bingding_key string, exchange str
 	return nil
 }
 
-//声明exhchange
-func (this *MQ) ExchangeDeclare(exchange_name, kind string) error {
-	err := this.Channel.ExchangeDeclare(exchange_name, kind, true, false, false, false, nil)
+// 声明exhchange
+func (this *MQ) ExchangeDeclare(exchangeName, kind string) error {
+	err := this.Channel.ExchangeDeclare(exchangeName, kind, true, false, false, false, nil)
 	return err
 }

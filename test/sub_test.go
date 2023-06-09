@@ -1,4 +1,4 @@
-package sub
+package test
 
 import (
 	"fmt"
@@ -7,16 +7,22 @@ import (
 	"testing"
 )
 
-const (
-	EXCHANGE_NAME = "mq_exchange_name_test"
-	QUEUE_NAME    = "mq_queue_name_test"
-	BINGDING_KEY  = "mq_bing_key_name_test"
-)
-
 func TestSub(t *testing.T) {
-	mq := gorabbitmq.Conn("guest", "guest", "127.0.0.1", "/", 5672)
+	var connParams = &gorabbitmq.ConnParams{
+		User:     USER,
+		Password: PASSWORD,
+		Host:     HOST,
+		Vhost:    VHOST,
+		Port:     PORT,
+	}
+
+	mq, err := gorabbitmq.Conn(connParams)
+	if err != nil {
+		t.Fatalf("connection failed: %v", err)
+	}
+
 	//defer mq.CloseChannel()
-	err := mq.ExchangeDeclare(EXCHANGE_NAME, "direct")
+	err = mq.ExchangeDeclare(EXCHANGE_NAME, "direct")
 	if err != nil {
 		t.Fatalf("exchange声明失败 %+v", err)
 	}
